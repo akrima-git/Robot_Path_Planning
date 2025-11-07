@@ -17,11 +17,12 @@ height = config["map_height"]
 prob = config["obstacle_probability"]
 border = config["border_walls"]
 seed = config.get("seed", None)
-distance = config.get("distance", 5)
+distance = config.get("distance",(width + height)/4)
 
 
-Sy = random.randint(1,width-2)
-Sx = random.randint(1,height-2)
+
+Sy = random.randint(1,height-2)
+Sx = random.randint(1,width-2)
 
 
 
@@ -66,14 +67,14 @@ def generate_random_map(width, height, obstacle_prob, border=True, seed=None):
 # Up, right, down, left
 
 def getMotion():
-    directions = int(input("4-directional or 8-directional? (4 or 8): "))
+    directions = (input("4-directional or 8-directional? (4 or 8): "))
     match directions:
-        case 4:
+        case "4":
             motion = [(-1,0),
                         (0,1),
                         (1,0),
                         (0,-1)]
-        case 8:
+        case "8":
             motion = [(-1,0),
                         (-1,1),
                         (0,1),
@@ -87,43 +88,39 @@ def getMotion():
             return getMotion()
     return motion
 
-# Function to check if deque is empty
-def isEmpty(dq):
-    return len(dq) == 0
-
-motion = getMotion()
-
 def traversal(grid, start, goal):
 
-
+    motion = getMotion()
     # Initialise set for visited nodes, and queue for the seen nodes to be visited
     visited = set()
     queue = deque()
     queue.append((start, [start]))
     
-    while not isEmpty(queue):
+    while queue:
         (y,x), path = queue.popleft()
         if (y,x) == goal:
-            return path
-        visited.add((y,x))
+            return path, visited
 
         for dy, dx in motion:
             ny, nx = y + dy, x + dx
 
             if 0 <= ny < grid.shape[0] and 0 <= nx < grid.shape[1]:
                 if grid[ny,nx] == 0 and (ny,nx) not in visited:
+                    visited.add((ny,nx))
                     queue.append(((ny, nx), path + [(ny, nx)]))
-    return None
+    return None, visited
 
 grid = generate_random_map(width,height,prob,border)
 
 map_traversed = grid.copy()
 start_time = time.time()
-path = traversal(grid, start, goal)
+path, visited = traversal(grid, start, goal)
 end_time = time.time()
 
 
-colours = ["white","darkgrey","darkblue","red","green","cyan"]
+colours = ["white","darkgrey","blue","red","green","cyan"]
+# 0 = free, 1 = wall, 2 = visited, 3 = start, 4 = goal, 5 = path
+
 
 cmap = ListedColormap(colours)
 print(path)
@@ -133,15 +130,20 @@ print("Time elapsed",end_time-start_time,"second(s)")
 
 plt.ion()
 fig, ax = plt.subplots()
-for py,px in path:
-    map_traversed[py,px] = 5
-    map_traversed[Sy,Sx] = 3
-    map_traversed[Gy, Gx] = 4
+map_traversed[Sy,Sx] = 3
+map_traversed[Gy, Gx] = 4
 
-    ax.clear()
-    ax.imshow(map_traversed, cmap=cmap)
-    plt.title("Path")
-    plt.pause(0.1)
+if path is None:
+    print("No path found")
+else:
+
+    for py, px in path[1:-1]:
+        map_traversed[py, px] = 5
+        ax.clear()
+        ax.imshow(map_traversed, cmap=cmap)
+        plt.title("Final Path")
+        plt.pause(0.2)
+
 
 plt.ioff()
 plt.show()
