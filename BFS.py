@@ -132,18 +132,16 @@ print("Time elapsed",end_time-start_time,"second(s)")
 
 plt.ion()
 fig, ax = plt.subplots()
-map_traversed[Sy,Sx] = 3
-map_traversed[Gy, Gx] = 4
+map_traversed[start] = 3
+map_traversed[goal] = 4
 
 if path is None:
     print("No path found")
 else:
     for vy, vx in visitedList:
-        if (vy,vx) != (Sy,Sx) and (vy,vx) != (Gy,Gx):
+        if (vy,vx) != start and (vy,vx) != goal:
             map_traversed[vy,vx] = 2
             ax.clear()
-            print("Unique values in map:", np.unique(map_traversed))
-
             ax.imshow(map_traversed, cmap=cmap, vmin=0, vmax=5)
             plt.title("Visited tiles")
             plt.pause(0.1)
@@ -151,8 +149,6 @@ else:
     for py, px in path[1:-1]:
         map_traversed[py, px] = 5
         ax.clear()
-        print("Unique values in map:", np.unique(map_traversed))
-
         ax.imshow(map_traversed, cmap=cmap)
         plt.title("Final Path")
         plt.pause(0.2)
