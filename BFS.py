@@ -34,7 +34,7 @@ while True:
     Gx = random.randint(1,height-2)
     if Gy == Sy and Gx == Sx:
         continue
-    if abs(Gy - Sy) <= 3 and abs(Gx - Sx) <= 3:
+    if abs(Gy - Sy) <= distance and abs(Gx - Sx) <= distance:
         continue
     else:
         goal = (Gy, Gx)
