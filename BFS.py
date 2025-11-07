@@ -7,9 +7,6 @@ import time
 import json
 import random
 
-
-# Reads map from excel and assigns it to a 2D array
-
 with open("MapAssignment.json") as file:
     config = json.load(file)
 
@@ -20,6 +17,7 @@ height = config["map_height"]
 prob = config["obstacle_probability"]
 border = config["border_walls"]
 seed = config.get("seed", None)
+distance = config.get("distance", 5)
 
 
 Sy = random.randint(1,width-2)
@@ -124,19 +122,29 @@ start_time = time.time()
 path = traversal(grid, start, goal)
 end_time = time.time()
 
-for py,px in path:
-    map_traversed[py,px] = 5
 
-map_traversed[Sy,Sx] = 3
-map_traversed[Gy, Gx] = 4
+colours = ["white","darkgrey","darkblue","red","green","cyan"]
+
+cmap = ListedColormap(colours)
 print(path)
 print("Time elapsed",end_time-start_time,"second(s)")
 
 
 
-colours = ["white","darkgrey","grey","red","green","cyan"]
+plt.ion()
+fig, ax = plt.subplots()
+for py,px in path:
+    map_traversed[py,px] = 5
+    map_traversed[Sy,Sx] = 3
+    map_traversed[Gy, Gx] = 4
 
-cmap = ListedColormap(colours)
-plt.imshow(map_traversed, cmap=cmap)
-plt.title("Grid Map (0=free,1=obstacle,3=start,4=goal,5=path)")
+    ax.clear()
+    ax.imshow(map_traversed, cmap=cmap)
+    plt.title("Path")
+    plt.pause(0.1)
+
+plt.ioff()
 plt.show()
+
+
+
