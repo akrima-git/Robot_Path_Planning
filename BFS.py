@@ -18,8 +18,8 @@ border = config["border_walls"]
 seed = config.get("seed", None)
 distance = config.get("distance",(width + height)/4)
 
-Sy = random.randint(1,height-2)
-Sx = random.randint(1,width-2)
+Sy = random.randint(1,height-2) if border == True else random.randint(0,height-1)
+Sx = random.randint(1,width-2) if border == True else random.randint(0,width-1)
 start = (Sy,Sx)
 while True:
     Gy = random.randint(1,width-2)
