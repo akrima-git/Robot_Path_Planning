@@ -16,21 +16,30 @@ height = config["map_height"]
 prob = config["obstacle_probability"]
 border = config["border_walls"]
 seed = config.get("seed", None)
-distance = config.get("distance",(width + height)/4)
+distance_threshold = config.get("distance",(width + height)/4)
 
-Sy = random.randint(1,height-2) if border == True else random.randint(0,height-1)
-Sx = random.randint(1,width-2) if border == True else random.randint(0,width-1)
-start = (Sy,Sx)
-while True:
-    Gy = random.randint(1,width-2)
-    Gx = random.randint(1,height-2)
-    if Gy == Sy and Gx == Sx:
-        continue
-    if abs(Gy - Sy) <= distance and abs(Gx - Sx) <= distance:
-        continue
-    else:
+def initialize_start_goal(width, height, border, distance_threshold):
+    min_coord = 1 if border else 0
+    max_y = height - (1 if border else 0)
+    max_x = width - (1 if border else 0)
+
+    Sy = random.randint(min_coord, max_y - 1)
+    Sx = random.randint(min_coord, max_x - 1)
+    start = (Sy, Sx)
+    
+    while True:
+        Gy = random.randint(min_coord, max_y - 1)
+        Gx = random.randint(min_coord, max_x - 1)
         goal = (Gy, Gx)
-        break
+
+        if goal == start:
+            continue
+        
+        # Check distance constraint (ensuring a minimum separation)
+        if abs(Gy - Sy) > distance_threshold or abs(Gx - Sx) > distance_threshold:
+            return start, goal
+
+start, goal = initialize_start_goal(width, height, border, distance_threshold)
 
 def generate_random_map(width, height, obstacle_prob, border=True, seed=None):
     if seed is not None:
@@ -41,10 +50,9 @@ def generate_random_map(width, height, obstacle_prob, border=True, seed=None):
 
     for y in range(height):
         for x in range(width):
-            if (y,x) == start or (y,x) == goal:
-                continue
-            if np.random.rand() < obstacle_prob:
-                grid[y,x] = 1
+            if (y, x) != start and (y, x) != goal:
+                if np.random.rand() < obstacle_prob:
+                    grid[y, x] = 1
     
     if border:
         grid[0, :] = 1
@@ -52,32 +60,36 @@ def generate_random_map(width, height, obstacle_prob, border=True, seed=None):
         grid[:, 0] = 1
         grid[:, -1] = 1
 
+    grid[start] = 0
+    grid[goal] = 0
+
     return grid
 
 
 # Up, right, down, left
 
 def getMotion():
-    directions = (input("4-directional or 8-directional? (4 or 8): "))
-    match directions:
-        case "4":
-            motion = [(-1,0),
-                        (0,1),
-                        (1,0),
-                        (0,-1)]
-        case "8":
-            motion = [(-1,0),
-                        (-1,1),
-                        (0,1),
-                        (1,1),
-                        (1,0),
-                        (1,-1),
-                        (0,-1),
-                        (-1,-1)]
-        case _:
-            print("Enter 4 or 8")
-            return getMotion()
-    return motion
+    while True:
+        directions = input("4-directional or 8-directional? (4 or 8): ").strip()
+        match directions:
+            case "4":
+                motion = [(-1,0),
+                            (0,1),
+                            (1,0),
+                            (0,-1)]
+                return motion
+            case "8":
+                motion = [(-1,0),
+                            (-1,1),
+                            (0,1),
+                            (1,1),
+                            (1,0),
+                            (1,-1),
+                            (0,-1),
+                            (-1,-1)]
+                return motion
+            case _:
+                print("Enter 4 or 8")
 
 def traversal(grid, start, goal):
 
