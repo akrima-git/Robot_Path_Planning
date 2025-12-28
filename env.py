@@ -9,6 +9,7 @@ import random
 
 from BFS import BFSGraph, BFSTree
 from AStar import AStarGraph, AStarTree
+from DFS import DFSGraph, DFSTree
 
 
 with open("MapAssignment.json") as file:    # Load configuration from JSON file
@@ -84,18 +85,22 @@ while motion is None:
 
 
 chosenModel = None                   
-while chosenModel not in ["BFS Graph", "BFS Tree", "A* Graph", "A* Tree"]:
-    choice = input("Choose a model: \n1. BFS Graph \n2. BFS Tree \n3. A* Graph \n4. A* Tree\nEnter 1, 2, or 3: ").strip()
+while chosenModel not in ["BFS Graph", "BFS Tree", "DFS Graph", "DFS Tree", "A* Graph", "A* Tree"]:
+    choice = input("Choose a model: \n1. BFS Graph \n2. BFS Tree \n3. DFS Graph \n4. DFS Tree \n5. A* Graph \n6. A* Tree\nEnter 1, 2, 3, 4, 5, or 6: ").strip()
     if choice == "1":
         chosenModel = "BFS Graph"
     elif choice == "2":
         chosenModel = "BFS Tree"
     elif choice == "3":
-        chosenModel = "A* Graph"
+        chosenModel = "DFS Graph"
     elif choice == "4":
+        chosenModel = "DFS Tree"
+    elif choice == "5":
+        chosenModel = "A* Graph"
+    elif choice == "6":
         chosenModel = "A* Tree"
     else:
-        print("Invalid choice. Please enter 1, 2, or 3.")
+        print("Invalid choice. Please enter 1, 2, 3, 4, 5, or 6.")
 
 
 
@@ -103,6 +108,9 @@ while chosenModel not in ["BFS Graph", "BFS Tree", "A* Graph", "A* Tree"]:
 
 GBFS = BFSGraph(motion)                                       # instantiate BFS class
 TBFS = BFSTree(motion, max_depth=15)
+
+GDFS = DFSGraph(motion)
+TDFS = DFSTree(motion, max_depth=15)
 
 GAStar = AStarGraph(motion)                              # instantiate A* class
 TAStar = AStarTree(motion)  
@@ -115,6 +123,10 @@ if chosenModel == "BFS Graph":
     path, visited, visitedList = GBFS.traversal(grid, start, goal)
 elif chosenModel == "BFS Tree":
     path, visited, visitedList = TBFS.traversal(grid, start, goal)
+elif chosenModel == "DFS Graph":
+    path, visited, visitedList = GDFS.traversal(grid, start, goal)
+elif chosenModel == "DFS Tree":
+    path, visited, visitedList = TDFS.traversal(grid, start, goal)
 elif chosenModel == "A* Graph":
     path, visited, visitedList = GAStar.traversal(grid, start, goal)
 elif chosenModel == "A* Tree":
