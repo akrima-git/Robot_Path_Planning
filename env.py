@@ -7,7 +7,7 @@ import time
 import json
 import random
 
-from BFS import BFS1
+from BFS import BFSGraph, BFSTree
 from AStar import AStarGraph, AStarTree
 
 
@@ -84,13 +84,15 @@ while motion is None:
 
 
 chosenModel = None                   
-while chosenModel not in ["BFS", "A* Graph", "A* Tree"]:
-    choice = input("Choose a model: \n1. BFS \n2. A* Graph \n3. A* Tree\nEnter 1, 2, or 3: ").strip()
+while chosenModel not in ["BFS Graph", "BFS Tree", "A* Graph", "A* Tree"]:
+    choice = input("Choose a model: \n1. BFS Graph \n2. BFS Tree \n3. A* Graph \n4. A* Tree\nEnter 1, 2, or 3: ").strip()
     if choice == "1":
-        chosenModel = "BFS"
+        chosenModel = "BFS Graph"
     elif choice == "2":
-        chosenModel = "A* Graph"
+        chosenModel = "BFS Tree"
     elif choice == "3":
+        chosenModel = "A* Graph"
+    elif choice == "4":
         chosenModel = "A* Tree"
     else:
         print("Invalid choice. Please enter 1, 2, or 3.")
@@ -99,7 +101,8 @@ while chosenModel not in ["BFS", "A* Graph", "A* Tree"]:
 
 
 
-bfs = BFS1(motion)                                       # instantiate BFS class
+GBFS = BFSGraph(motion)                                       # instantiate BFS class
+TBFS = BFSTree(motion, max_depth=15)
 
 GAStar = AStarGraph(motion)                              # instantiate A* class
 TAStar = AStarTree(motion)  
@@ -108,8 +111,10 @@ grid = generate_random_map(width, height, prob, border) # Generate random map
 
 
 start_time = time.time()                                  # Start timer
-if chosenModel == "BFS":
-    path, visited, visitedList = bfs.traversal(grid, start, goal)
+if chosenModel == "BFS Graph":
+    path, visited, visitedList = GBFS.traversal(grid, start, goal)
+elif chosenModel == "BFS Tree":
+    path, visited, visitedList = TBFS.traversal(grid, start, goal)
 elif chosenModel == "A* Graph":
     path, visited, visitedList = GAStar.traversal(grid, start, goal)
 elif chosenModel == "A* Tree":
