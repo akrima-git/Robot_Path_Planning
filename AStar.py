@@ -1,35 +1,33 @@
 import heapq
 import math
 
+# PSEUDO CODE REFERENCE: https://www.geeksforgeeks.org/dsa/a-search-algorithm/
 class AStarGraph:
     def __init__(self, motion):
         self.motion = motion
 
-    def _heuristic(self, a, b, diagonal=False):     # Heuristic function (Euclidean or Manhattan)
-        (y1, x1) = a
-        (y2, x2) = b
-        dy = abs(y1 - y2)
-        dx = abs(x1 - x2)
+    def heuristic(self, a, b):                      # Heuristic function (Euclidean or Manhattan)
+        diagonal = (1,1) in self.motion             # Check if diagonal movement is allowed
+        dy = abs(a[0] - b[0])
+        dx = abs(a[1] - b[1])
         if diagonal:
-            return math.hypot(dy, dx)
+            return math.hypot(dy, dx)               # Euclidean distance for 8 movements
         else:
-            return dy + dx
+            return dy + dx                          # Manhattan distace for 4 movements
 
     def traversal(self, grid, start, goal):
-        motion = self.motion
-        diagonal = any(abs(dy) == 1 and abs(dx) == 1 for dy, dx in motion)  # Check if diagonal movement is allowed
+  
+        open_heap = []                              # Min-heap priority queue for open set
+        heapq.heappush(open_heap, (self.heuristic(start, goal), 0, start))
 
-        open_heap = []          # Min-heap priority queue for open set
-        heapq.heappush(open_heap, (self._heuristic(start, goal, diagonal), 0, start))
-
-        came_from = {}
-        g_score = {start: 0}
+        came_from = {}                              # For path reconstruction
+        gScore = {start: 0}                         # Cost from start to node (dict for faster indexing)
         
-        # Track expanded nodes to prevent re-expansion
+        # Track closed set to avoid re-processing nodes
         closed = set()
         visitedList = []
 
-        if start == goal:                       # Immediate check for start equals goal
+        if start == goal:                           # Immediate check for start equals goal
             return [start], closed, visitedList
 
         while open_heap:
@@ -42,32 +40,31 @@ class AStarGraph:
             closed.add(current)
             visitedList.append(current)
 
-            if current == goal:                  # Reconstruct path
+            if current == goal:                     # Reconstruct path back to start (for visualisation) if goal reached
                 path = [current]
                 while path[-1] in came_from:
                     path.append(came_from[path[-1]])
                 path.reverse()
-                return path, closed, visitedList
+                return path, closed, visitedList    # Exit if goal reached
 
-            y, x = current      # Explore neighbours
-            for dy, dx in motion:
-                ny, nx = y + dy, x + dx
-                                # Check bounds
+            y, x = current                          # Explore neighbours
+            for dy, dx in self.motion:
+                ny, nx = y + dy, x + dx             # Check bounds
                 if 0 <= ny < grid.shape[0] and 0 <= nx < grid.shape[1]:
-                    if grid[ny, nx] != 0:
+                    if grid[ny, nx] != 0:           # Obstacle check
                         continue
 
                     neighbour = (ny, nx)
                     step_cost = math.hypot(dy, dx)  # Cost to move to neighbour
-                    tentative_g = g + step_cost
+                    neighbourG = g + step_cost      # Total cost to move from start to neighbour
 
-                    if neighbour in g_score and tentative_g >= g_score[neighbour]:
-                        continue
+                    if neighbour in gScore and neighbourG >= gScore[neighbour]:
+                        continue                    # Ignore if not a better path than what we already found
 
-                    came_from[neighbour] = current
-                    g_score[neighbour] = tentative_g
-                    f_score = tentative_g + self._heuristic(neighbour, goal, diagonal)
-                    heapq.heappush(open_heap, (f_score, tentative_g, neighbour))
+                    came_from[neighbour] = current  # Record best path to neighbour
+                    gScore[neighbour] = neighbourG
+                    f_score = neighbourG + self.heuristic(neighbour, goal) # Estimated total cost (from start to goal through neighbour)
+                    heapq.heappush(open_heap, (f_score, neighbourG, neighbour))
 
         return None, closed, visitedList
     
@@ -75,67 +72,63 @@ class AStarTree:
     def __init__(self, motion):
         self.motion = motion
 
-    def _heuristic(self, a, b, diagonal=False):
-        (y1, x1) = a
-        (y2, x2) = b
-        dy = abs(y1 - y2)
-        dx = abs(x1 - x2)
+    def heuristic(self, a, b):                      # Heuristic function (Euclidean or Manhattan)
+        diagonal = (1,1) in self.motion             # Check if diagonal movement is allowed
+        dy = abs(a[0] - b[0])
+        dx = abs(a[1] - b[1])
         if diagonal:
-            return math.hypot(dy, dx)
+            return math.hypot(dy, dx)               # Euclidean distance for 8 movements
         else:
-            return dy + dx
+            return dy + dx                          # Manhattan distace for 4 movements
 
     def traversal(self, grid, start, goal):
-        motion = self.motion
-        diagonal = any(abs(dy) == 1 and abs(dx) == 1 for dy, dx in motion)
 
         open_heap = []
-        heapq.heappush(open_heap, (self._heuristic(start, goal, diagonal), 0, start))
+        heapq.heappush(open_heap, (self.heuristic(start, goal), 0, start))
 
-        came_from = {}
-        g_score = {start: 0}
+        cameFrom = {}
+        gScore = {start: 0}
 
         # Tree search
-        expanded_unique = set() 
+        visitedUnique = set() 
         visitedList = []
 
-        if start == goal:
-            return [start], expanded_unique, visitedList
-
+        if start == goal:                           # Immediate check for start equals goal
+            return [start], visitedUnique, visitedList
         while open_heap:
             f, g, current = heapq.heappop(open_heap)
 
             # As we don't have a closed set, we always process the node
             
-            expanded_unique.add(current) 
+            visitedUnique.add(current) 
             visitedList.append(current)
 
-            if current == goal:
+            if current == goal:                # Reconstruct path for visualisation if goal reached
                 path = [current]
-                while path[-1] in came_from:
-                    path.append(came_from[path[-1]])
+                while path[-1] in cameFrom:
+                    path.append(cameFrom[path[-1]])
                 path.reverse()
-                return path, expanded_unique, visitedList
+                return path, visitedUnique, visitedList
 
-            y, x = current
-            for dy, dx in motion:
+            y, x = current                    # Explore neighbours
+            for dy, dx in self.motion:
                 ny, nx = y + dy, x + dx
 
-                if 0 <= ny < grid.shape[0] and 0 <= nx < grid.shape[1]:
+                if 0 <= ny < grid.shape[0] and 0 <= nx < grid.shape[1]:     # obstacle / boundary check
                     if grid[ny, nx] != 0:
                         continue
 
                     neighbour = (ny, nx)
                     step_cost = math.hypot(dy, dx)
-                    tentative_g = g + step_cost
+                    neighbourG = g + step_cost
 
-                    # Check if the new path is strictly worse to avoid infinite cycles
-                    if neighbour in g_score and tentative_g >= g_score[neighbour]:
+                    # Check if the new path is worse (to avoid infinite cycles)
+                    if neighbour in gScore and neighbourG >= gScore[neighbour]:
                         continue
 
-                    came_from[neighbour] = current
-                    g_score[neighbour] = tentative_g
-                    f_score = tentative_g + self._heuristic(neighbour, goal, diagonal)
-                    heapq.heappush(open_heap, (f_score, tentative_g, neighbour))
+                    cameFrom[neighbour] = current   # Record best path to neighbour
+                    gScore[neighbour] = neighbourG
+                    fScore = neighbourG + self.heuristic(neighbour, goal)
+                    heapq.heappush(open_heap, (fScore, neighbourG, neighbour))
 
-        return None, expanded_unique, visitedList
+        return None, visitedUnique, visitedList

@@ -1,15 +1,15 @@
 from collections import deque
-import pandas as pd
-import numpy as np
+import numpy as np  
 import matplotlib.pyplot as plt
-from matplotlib.colors import ListedColormap
-import time
+from matplotlib.colors import ListedColormap    # For visualisation
+import time                                     # For measuring execution time
 import json
-import random
 
+# Import algorithms
 from BFS import BFSGraph, BFSTree
-from AStar import AStarGraph, AStarTree
 from DFS import DFSGraph, DFSTree
+from AStar import AStarGraph, AStarTree
+from UCS import UCSGraph, UCSTree
 
 
 with open("MapAssignment.json") as file:    # Load configuration from JSON file
@@ -24,24 +24,20 @@ seed = config.get("seed", None)             # Random seed (optional)
 distance = config.get("distance", (width + height) / 4)
 
 
-Sy = random.randint(1, height - 2) if border == True else random.randint(0, height - 1)      # Start position
-Sx = random.randint(1, width - 2) if border == True else random.randint(0, width - 1)
-start = (Sy, Sx)
 
-while True:                                 # Goal position
-    Gy = random.randint(1, height - 2)
-    Gx = random.randint(1, width - 2)
-    if Gy == Sy and Gx == Sx:               # Ensure goal is not the same as start
-        continue
-    if abs(Gy - Sy) <= distance and abs(Gx - Sx) <= distance:   # Ensure goal is at least 'distance' away from start
-        continue
-    else:
-        goal = (Gy, Gx)                     # Set goal position
-        break
 
-def generate_random_map(width, height, obstacle_prob, border=True, seed=None):
+def setUpEnv(width, height, obstacle_prob, border=True, seed=None):
     if seed is not None:
         np.random.seed(seed)
+
+    Sy, Sx = np.random.randint(1, height-2), np.random.randint(1, width-2)
+    Gy, Gx = np.random.randint(1, height-2), np.random.randint(1, width-2)
+    start = (Sy, Sx)
+
+    # Ensure goal is distinct and reasonably far
+    while abs(Sy-Gy) + abs(Sx-Gx) < (width+height)/4:
+        Gy, Gx = np.random.randint(1, height-2), np.random.randint(1, width-2)
+    goal = (Gy, Gx)
 
     grid = np.zeros((height, width), dtype=int)
 
@@ -59,113 +55,121 @@ def generate_random_map(width, height, obstacle_prob, border=True, seed=None):
         grid[:, 0] = 1
         grid[:, -1] = 1
 
-    return grid
+    return grid, start, goal
+
+def getMotion(directions):
+    if directions == 4:
+        return [(-1, 0), (0, 1), (1, 0), (0, -1)] # North, East, South, West
+    elif directions == 8:
+        return [(-1, 0), (-1, 1), (0, 1), (1, 1), # N, NE, E, SE, S, SW, W, NW
+                (1, 0), (1, -1), (0, -1), (-1, -1)]
+    return []
+
+if __name__ == "__main__":
+
+    motion = None                   # Get user input for motion model
+    while motion is None:
+        directions = input("4-directional or 8-directional? (4 or 8): ")
+        motion = getMotion(int(directions))
+        if not motion:
+            print("Invalid choice. Please enter 4 or 8.")
+            motion = None
+
+    chosenModel = None                   
+    while chosenModel not in ["BFS Graph", "BFS Tree", "DFS Graph", "DFS Tree", "A* Graph", "A* Tree", "UCS Graph", "UCS Tree"]:
+        choice = input("Choose a model: \n1. BFS Graph \n2. BFS Tree (Please reduce map size to 10x10 or lower) \n3. DFS Graph\n4. DFS Tree (Please reduce map size to 10x10 or lower) \n5. A* Graph\n6. A* Tree\n7. UCS Graph\n8. UCS Tree\nEnter 1, 2, 3, 4, 5, 6, 7, or 8: ")
+        match choice:
+            case "1":
+                chosenModel = "BFS Graph"
+            case "2":
+                chosenModel = "BFS Tree"
+            case "3":
+                chosenModel = "DFS Graph"
+            case "4":
+                chosenModel = "DFS Tree"
+            case "5":
+                chosenModel = "A* Graph"
+            case "6":
+                chosenModel = "A* Tree"
+            case "7":
+                chosenModel = "UCS Graph"
+            case "8":
+                chosenModel = "UCS Tree"
+
+            
+            case _:
+                print("Invalid choice. Please enter 1-8: ")
+
+    grid, start, goal = setUpEnv(width, height, prob, border)# Generate random map
+
+    GBFS = BFSGraph(motion)                                  # instantiate BFS class
+    TBFS = BFSTree(motion, max_depth=15)                     # set max depth for tree search
+
+    GDFS = DFSGraph(motion)                                  # instantiate DFS class
+    TDFS = DFSTree(motion, max_depth=15)                     # set max depth for tree search
+
+    GAStar = AStarGraph(motion)                              # instantiate A* class
+    TAStar = AStarTree(motion)  
+
+    GUCS = UCSGraph(motion)                                  # instantiate UCS class
+    TUCS = UCSTree(motion)
 
 
-motion = None                   # Get user input for motion model
-while motion is None:
-    directions = input("4-directional or 8-directional? (4 or 8): ")
-    match directions:
-        case "4":               # North, East, South, West
-            motion = [(-1, 0),
-                        (0, 1),
-                        (1, 0),
-                        (0, -1)]
-        case "8":
-            motion = [(-1, 0),   # N, NE, E, SE, S, SW, W, NW
-                        (-1, 1),
-                        (0, 1),
-                        (1, 1),
-                        (1, 0),
-                        (1, -1),
-                        (0, -1),
-                        (-1, -1)]
+
+
+    start_time = time.time()                                  # Start timer
+    match chosenModel:
+        case "BFS Graph":
+            path, visited, visitedList = GBFS.traversal(grid, start, goal)
+        case "BFS Tree":
+            path, visited, visitedList = TBFS.traversal(grid, start, goal)
+        case "DFS Graph":
+            path, visited, visitedList = GDFS.traversal(grid, start, goal)
+        case "DFS Tree":
+            path, visited, visitedList = TDFS.traversal(grid, start, goal)
+        case "A* Graph":
+            path, visited, visitedList = GAStar.traversal(grid, start, goal)
+        case  "A* Tree":
+            path, visited, visitedList = TAStar.traversal(grid, start, goal)
+        case  "UCS Graph":
+            path, visited, visitedList = GUCS.traversal(grid, start, goal)
+        case  "UCS Tree":
+            path, visited, visitedList = TUCS.traversal(grid, start, goal)
         case _:
-            print("Enter 4 or 8: ")
+            print("No valid model chosen.")
+            path, visited, visitedList = None, set(), []
+    end_time = time.time()                                     # End timer 
 
+    # Visualisation
 
-chosenModel = None                   
-while chosenModel not in ["BFS Graph", "BFS Tree", "DFS Graph", "DFS Tree", "A* Graph", "A* Tree"]:
-    choice = input("Choose a model: \n1. BFS Graph \n2. BFS Tree \n3. DFS Graph \n4. DFS Tree \n5. A* Graph \n6. A* Tree\nEnter 1, 2, 3, 4, 5, or 6: ").strip()
-    if choice == "1":
-        chosenModel = "BFS Graph"
-    elif choice == "2":
-        chosenModel = "BFS Tree"
-    elif choice == "3":
-        chosenModel = "DFS Graph"
-    elif choice == "4":
-        chosenModel = "DFS Tree"
-    elif choice == "5":
-        chosenModel = "A* Graph"
-    elif choice == "6":
-        chosenModel = "A* Tree"
+    # 0 = free, 1 = wall, 2 = visited, 3 = start, 4 = goal, 5 = path
+    cmap = ListedColormap(["white", "darkgrey", "blue", "red", "green", "cyan"])
+    print(path)
+    print("Time elapsed", end_time - start_time, "second(s)")
+
+    plt.ion()
+    fig, plot = plt.subplots()
+    grid[start] = 3                                            # Mark start (red) and goal (green) on grid
+    grid[goal] = 4
+
+    if path is None:
+        print("No path found")
     else:
-        print("Invalid choice. Please enter 1, 2, 3, 4, 5, or 6.")
+        for vy, vx in visitedList:                             # Visualise visited nodes
+            if (vy, vx) != start and (vy, vx) != goal:
+                grid[vy, vx] = 2                               # Mark visited (blue)
+                plot.clear()
+                plot.imshow(grid, cmap = cmap, vmin = 0, vmax = 5)
+                plt.title(f"Visited tiles ({len(visited)})")
+                plt.pause(0.02)
+
+        for py, px in path[1:-1]:                               # Visualise final path
+            grid[py, px] = 5                                    # Mark path (cyan)  
+            plot.clear()
+            plot.imshow(grid, cmap = cmap)
+            plt.title(f"Final Path ({len(path)})")
+            plt.pause(0.05)
 
 
-
-
-
-GBFS = BFSGraph(motion)                                       # instantiate BFS class
-TBFS = BFSTree(motion, max_depth=15)
-
-GDFS = DFSGraph(motion)
-TDFS = DFSTree(motion, max_depth=15)
-
-GAStar = AStarGraph(motion)                              # instantiate A* class
-TAStar = AStarTree(motion)  
-
-grid = generate_random_map(width, height, prob, border) # Generate random map
-
-
-start_time = time.time()                                  # Start timer
-if chosenModel == "BFS Graph":
-    path, visited, visitedList = GBFS.traversal(grid, start, goal)
-elif chosenModel == "BFS Tree":
-    path, visited, visitedList = TBFS.traversal(grid, start, goal)
-elif chosenModel == "DFS Graph":
-    path, visited, visitedList = GDFS.traversal(grid, start, goal)
-elif chosenModel == "DFS Tree":
-    path, visited, visitedList = TDFS.traversal(grid, start, goal)
-elif chosenModel == "A* Graph":
-    path, visited, visitedList = GAStar.traversal(grid, start, goal)
-elif chosenModel == "A* Tree":
-    path, visited, visitedList = TAStar.traversal(grid, start, goal)
-else:
-    print("No valid model chosen.")
-    path, visited, visitedList = None, set(), []
-end_time = time.time()                                  # End timer 
-
-# Visualisation
-
-# 0 = free, 1 = wall, 2 = visited, 3 = start, 4 = goal, 5 = path
-cmap = ListedColormap(["white", "darkgrey", "blue", "red", "green", "cyan"])
-print(path)
-print("Time elapsed", end_time - start_time, "second(s)")
-
-plt.ion()
-fig, ax = plt.subplots()
-grid[start] = 3
-grid[goal] = 4
-
-if path is None:
-    print("No path found")
-else:
-    for vy, vx in visitedList:
-        if (vy, vx) != start and (vy, vx) != goal:
-            grid[vy, vx] = 2
-            ax.clear()
-            ax.imshow(grid, cmap=cmap, vmin=0, vmax=5)
-            plt.title(f"Visited tiles ({len(visited)})")
-            plt.pause(0.1)
-
-    for py, px in path[1:-1]:
-        grid[py, px] = 5
-        ax.clear()
-        ax.imshow(grid, cmap=cmap)
-        plt.title(f"Final Path ({len(path)})")
-        plt.pause(0.2)
-
-
-plt.ioff()
-plt.show()
+    plt.ioff()
+    plt.show()
