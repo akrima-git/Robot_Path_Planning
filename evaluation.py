@@ -39,9 +39,9 @@ for direction in [4, 8]:
     # Instantiate classes
     algos = {
         "BFS Graph": BFSGraph(motion),
-        "BFS Tree": BFSTree(motion, max_depth = 15),
+        "BFS Tree": BFSTree(motion),
         "DFS Graph": DFSGraph(motion),
-        "DFS Tree": DFSTree(motion, max_depth = 15),
+        "DFS Tree": DFSTree(motion),
         "A* Graph": AStarGraph(motion),
         "A* Tree": AStarTree(motion),
         "UCS Graph": UCSGraph(motion),

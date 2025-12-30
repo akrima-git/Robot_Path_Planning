@@ -77,7 +77,7 @@ if __name__ == "__main__":
 
     chosenModel = None                   
     while chosenModel not in ["BFS Graph", "BFS Tree", "DFS Graph", "DFS Tree", "A* Graph", "A* Tree", "UCS Graph", "UCS Tree"]:
-        choice = input("Choose a model: \n1. BFS Graph \n2. BFS Tree (Please reduce map size to 10x10 or lower) \n3. DFS Graph\n4. DFS Tree (Please reduce map size to 10x10 or lower) \n5. A* Graph\n6. A* Tree\n7. UCS Graph\n8. UCS Tree\nEnter 1, 2, 3, 4, 5, 6, 7, or 8: ")
+        choice = input("Choose a model: \n1. BFS Graph \n2. BFS Tree (Please reduce map size to 20x20 or lower) \n3. DFS Graph\n4. DFS Tree (Please reduce map size to 20x20 or lower) \n5. A* Graph\n6. A* Tree\n7. UCS Graph\n8. UCS Tree\nEnter 1, 2, 3, 4, 5, 6, 7, or 8: ")
         match choice:
             case "1":
                 chosenModel = "BFS Graph"
@@ -103,10 +103,10 @@ if __name__ == "__main__":
     grid, start, goal = setUpEnv(width, height, prob, border)# Generate random map
 
     GBFS = BFSGraph(motion)                                  # instantiate BFS class
-    TBFS = BFSTree(motion, max_depth=15)                     # set max depth for tree search
+    TBFS = BFSTree(motion)
 
     GDFS = DFSGraph(motion)                                  # instantiate DFS class
-    TDFS = DFSTree(motion, max_depth=15)                     # set max depth for tree search
+    TDFS = DFSTree(motion, max_depth =500)                   # set a higher depth limit for larger maps
 
     GAStar = AStarGraph(motion)                              # instantiate A* class
     TAStar = AStarTree(motion)  
@@ -140,6 +140,8 @@ if __name__ == "__main__":
             path, visited, visitedList = None, set(), []
     end_time = time.time()                                     # End timer 
 
+
+
     # Visualisation
 
     # 0 = free, 1 = wall, 2 = visited, 3 = start, 4 = goal, 5 = path
@@ -161,14 +163,14 @@ if __name__ == "__main__":
                 plot.clear()
                 plot.imshow(grid, cmap = cmap, vmin = 0, vmax = 5)
                 plt.title(f"Visited tiles ({len(visited)})")
-                plt.pause(0.02)
+                plt.pause(0.002)
 
         for py, px in path[1:-1]:                               # Visualise final path
             grid[py, px] = 5                                    # Mark path (cyan)  
             plot.clear()
             plot.imshow(grid, cmap = cmap)
             plt.title(f"Final Path ({len(path)})")
-            plt.pause(0.05)
+            plt.pause(0.005)
 
 
     plt.ioff()

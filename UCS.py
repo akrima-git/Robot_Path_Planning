@@ -1,7 +1,7 @@
 import heapq
 import math
 
-# version of Uniform Cost Search adapted from A* implementation
+# version of Uniform Cost Search adapted from A* implementation and https://www.geeksforgeeks.org/artificial-intelligence/uniform-cost-search-ucs-in-ai/
 class UCSGraph:
     def __init__(self, motion):
         self.motion = motion

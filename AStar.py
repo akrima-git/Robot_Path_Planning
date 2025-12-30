@@ -95,6 +95,7 @@ class AStarTree:
 
         if start == goal:                           # Immediate check for start equals goal
             return [start], visitedUnique, visitedList
+        
         while open_heap:
             f, g, current = heapq.heappop(open_heap)
 
