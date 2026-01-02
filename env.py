@@ -35,7 +35,7 @@ def setUpEnv(width, height, obstacle_prob, border=True, seed=None):
     start = (Sy, Sx)
 
     # Ensure goal is distinct and reasonably far
-    while abs(Sy-Gy) + abs(Sx-Gx) < (width+height)/4:
+    while abs(Sy-Gy) + abs(Sx-Gx) < distance:
         Gy, Gx = np.random.randint(1, height-2), np.random.randint(1, width-2)
     goal = (Gy, Gx)
 
