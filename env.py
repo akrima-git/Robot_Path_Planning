@@ -1,4 +1,3 @@
-from collections import deque
 import numpy as np  
 import matplotlib.pyplot as plt
 from matplotlib.colors import ListedColormap    # For visualisation
@@ -102,17 +101,15 @@ if __name__ == "__main__":
 
     grid, start, goal = setUpEnv(width, height, prob, border)# Generate random map
 
-    GBFS = BFSGraph(motion)                                  # instantiate BFS class
-    TBFS = BFSTree(motion)
 
-    GDFS = DFSGraph(motion)                                  # instantiate DFS class
-    TDFS = DFSTree(motion, max_depth =500)                   # set a higher depth limit for larger maps
 
-    GAStar = AStarGraph(motion)                              # instantiate A* class
-    TAStar = AStarTree(motion)  
 
-    GUCS = UCSGraph(motion)                                  # instantiate UCS class
-    TUCS = UCSTree(motion)
+
+
+
+
+
+
 
 
 
@@ -120,20 +117,28 @@ if __name__ == "__main__":
     start_time = time.time()                                  # Start timer
     match chosenModel:
         case "BFS Graph":
+            GBFS = BFSGraph(motion)                                  # instantiate BFS class
             path, visited, visitedList = GBFS.traversal(grid, start, goal)
         case "BFS Tree":
+            TBFS = BFSTree(motion)
             path, visited, visitedList = TBFS.traversal(grid, start, goal)
         case "DFS Graph":
+            GDFS = DFSGraph(motion)                                  # instantiate DFS class
             path, visited, visitedList = GDFS.traversal(grid, start, goal)
         case "DFS Tree":
+            TDFS = DFSTree(motion, max_depth =500)                   # set a higher depth limit for larger maps
             path, visited, visitedList = TDFS.traversal(grid, start, goal)
         case "A* Graph":
+            GAStar = AStarGraph(motion)                              # instantiate A* class
             path, visited, visitedList = GAStar.traversal(grid, start, goal)
         case  "A* Tree":
+            TAStar = AStarTree(motion)  
             path, visited, visitedList = TAStar.traversal(grid, start, goal)
         case  "UCS Graph":
+            GUCS = UCSGraph(motion)                                  # instantiate UCS class
             path, visited, visitedList = GUCS.traversal(grid, start, goal)
         case  "UCS Tree":
+            TUCS = UCSTree(motion)
             path, visited, visitedList = TUCS.traversal(grid, start, goal)
         case _:
             print("No valid model chosen.")

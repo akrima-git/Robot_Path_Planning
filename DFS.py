@@ -1,5 +1,3 @@
-from collections import deque
-
 class DFSGraph:
     def __init__(self, motion):
         self.motion = motion

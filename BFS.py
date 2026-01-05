@@ -24,7 +24,7 @@ class BFSGraph:
             current = queue.popleft()
             visitedList.append(current)
 
-            if current == goal: # If goal if found
+            if current == goal: # If goal is found
                 # Reconstruct path backwards from goal to start
                 path = []
                 while current in came_from: 
@@ -56,9 +56,9 @@ class BFSTree:
         # In tree search we store the path in the queue because we need to check strictly against the current branch's history, not the global visited set
         queue = deque()
         queue.append((start, [start])) 
+        expanded_unique = set()
         
         # for visualisation
-        expanded_unique = set()
         visitedList = []
 
         # Store the best depth reached for each node to prevent re-expanding at greater depths

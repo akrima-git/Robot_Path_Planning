@@ -1,8 +1,8 @@
 {
-  "map_width": 100,
-  "map_height": 100,
+  "map_width": 40,
+  "map_height": 40,
   "obstacle_probability": 0.2,
-  "distance": 50,
-  "border_walls": false,
+  "distance": 15,
+  "border_walls": true,
   "seed": 42
 }
